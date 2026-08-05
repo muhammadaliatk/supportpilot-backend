@@ -13,4 +13,8 @@ export class UsersService {
   async createUser(createUserDto: CreateUserDto) {
     return this.usersRepository.create(createUserDto);
   }
+
+  async findByEmailWithPassword(email: string) {
+    return this.usersRepository.findByEmailWithPassword(email);
+  }
 }
