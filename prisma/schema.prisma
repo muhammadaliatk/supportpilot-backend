@@ -19,6 +19,11 @@ enum OrganizationRole {
   MEMBER
 }
 
+enum OrganizationStatus {
+  ACTIVE
+  SUSPENDED
+}
+
 model User {
   id        String     @id @default(uuid())
   email     String     @unique
@@ -50,8 +55,9 @@ model Organization {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
-
+  status OrganizationStatus @default(ACTIVE)
   members OrganizationUser[]
+  @@index([name])
 }
 
 model OrganizationUser {
@@ -63,6 +69,8 @@ model OrganizationUser {
   role OrganizationRole @default(MEMBER)
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)

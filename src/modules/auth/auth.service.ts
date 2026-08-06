@@ -6,34 +6,26 @@ import { UsersService } from '../users/users.service';
 import { UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
+import { PrismaService } from '../../database/prisma/prisma.service';
+import { RegistrationService } from '../registration/services/registration/registration.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
+    private readonly prisma: PrismaService,
+    private readonly registrationService: RegistrationService,
   ) {}
 
-  async register(registerDto: RegisterDto) {
-    const existingUser = await this.usersService.findByEmail(registerDto.email);
-
-    if (existingUser) {
-      throw new ConflictException('Email already exists');
-    }
-
-    const hashedPassword = await bcrypt.hash(registerDto.password, 10);
-
-    const user = await this.usersService.createUser({
-      ...registerDto,
-      password: hashedPassword,
-    });
+  async register(dto: RegisterDto) {
+    const result = await this.registrationService.register(dto);
 
     return {
       success: true,
-      message: 'User registered successfully',
       data: {
-        id: user.id,
-        email: user.email,
+        id: result.user.id,
+        email: result.user.email,
       },
     };
   }

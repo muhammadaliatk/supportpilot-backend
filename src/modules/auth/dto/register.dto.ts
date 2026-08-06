@@ -1,23 +1,7 @@
-import {
-  IsEmail,
-  IsNotEmpty,
-  IsString,
-  MinLength,
-  Matches,
-} from 'class-validator';
+import { MinLength, Matches } from 'class-validator';
+import { RegisterUserDto } from '../../registration/dto/register-user.dto';
 
-export class RegisterDto {
-  @IsString()
-  @IsNotEmpty()
-  firstName: string;
-
-  @IsString()
-  @IsNotEmpty()
-  lastName: string;
-
-  @IsEmail()
-  email: string;
-
+export class RegisterDto extends RegisterUserDto {
   @MinLength(8)
   @Matches(
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/,
@@ -26,5 +10,5 @@ export class RegisterDto {
         'Password must contain uppercase, lowercase, number and special character',
     },
   )
-  password: string;
+  declare password: string;
 }
