@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+  Patch,
+} from '@nestjs/common';
 
 import { TicketService } from '../../services/ticket/ticket.service';
 import { CreateTicketDto } from '../../dto/create-ticket.dto';
@@ -9,6 +17,7 @@ import { CurrentUser } from '../../../../common/decorators/current-user.decorato
 import type { CurrentUser as CurrentUserType } from '../../../../common/interfaces/current-user.interface';
 
 import { successResponse } from '../../../../common/utils/api-response.util';
+import { UpdateTicketDto } from '../../dto/update-ticket.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('tickets')
@@ -44,5 +53,20 @@ export class TicketController {
     const ticket = await this.ticketService.findById(id, user.organizationId);
 
     return successResponse(ticket, 'Ticket retrieved successfully');
+  }
+
+  @Patch(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateTicketDto,
+    @CurrentUser() user: CurrentUserType,
+  ) {
+    const ticket = await this.ticketService.update(
+      id,
+      user.organizationId,
+      dto,
+    );
+
+    return successResponse(ticket, 'Ticket updated successfully');
   }
 }

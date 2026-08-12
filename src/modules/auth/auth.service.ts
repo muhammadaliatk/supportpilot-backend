@@ -44,7 +44,15 @@ export class AuthService {
     if (!isValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
+
     const membership = user.organizations[0];
+
+    if (!membership) {
+      throw new UnauthorizedException(
+        'User does not belong to any organization',
+      );
+    }
+
     const payload = {
       sub: user.id,
       email: user.email,

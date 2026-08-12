@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { TicketPriority } from '@prisma/client';
 
 import { TicketRepository } from '../../repositories/ticket.repository/ticket.repository';
 import { CreateTicketDto } from '../../dto/create-ticket.dto';
+import { UpdateTicketDto } from '../../dto/update-ticket.dto';
 
 @Injectable()
 export class TicketService {
@@ -24,5 +25,15 @@ export class TicketService {
 
   async findById(id: string, organizationId: string) {
     return this.ticketRepository.findById(id, organizationId);
+  }
+
+  async update(id: string, organizationId: string, dto: UpdateTicketDto) {
+    const ticket = await this.ticketRepository.findById(id, organizationId);
+
+    if (!ticket) {
+      throw new NotFoundException('Ticket not found');
+    }
+
+    return this.ticketRepository.update(id, organizationId, dto);
   }
 }
