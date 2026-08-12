@@ -7,7 +7,16 @@ export class UsersRepository {
 
   async findByEmail(email: string) {
     return this.prisma.user.findUnique({
-      where: { email },
+      where: {
+        email,
+      },
+      include: {
+        organizations: {
+          include: {
+            organization: true,
+          },
+        },
+      },
     });
   }
 
@@ -25,6 +34,13 @@ export class UsersRepository {
   async findByEmailWithPassword(email: string) {
     return this.prisma.user.findUnique({
       where: { email },
+      include: {
+        organizations: {
+          include: {
+            organization: true,
+          },
+        },
+      },
     });
   }
 }

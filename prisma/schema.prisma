@@ -24,6 +24,20 @@ enum OrganizationStatus {
   SUSPENDED
 }
 
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
 model User {
   id        String     @id @default(uuid())
   email     String     @unique
@@ -41,6 +55,7 @@ model User {
   deletedAt DateTime?
 
   organizations OrganizationUser[]
+  tickets       Ticket[]           @relation("CreatedTickets")
 
   @@index([email])
 }
@@ -52,11 +67,13 @@ model Organization {
   logo     String?
   timezone String  @default("UTC")
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
   deletedAt DateTime?
-  status OrganizationStatus @default(ACTIVE)
-  members OrganizationUser[]
+  status    OrganizationStatus @default(ACTIVE)
+  members   OrganizationUser[]
+  tickets   Ticket[]
+
   @@index([name])
 }
 
@@ -68,8 +85,8 @@ model OrganizationUser {
 
   role OrganizationRole @default(MEMBER)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -78,4 +95,29 @@ model OrganizationUser {
   @@unique([userId, organizationId])
   @@index([userId])
   @@index([organizationId])
+}
+
+model Ticket {
+  id String @id @default(uuid())
+
+  subject     String
+  description String
+
+  status   TicketStatus   @default(OPEN)
+  priority TicketPriority @default(MEDIUM)
+
+  organizationId String
+  createdById    String
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdBy User @relation("CreatedTickets", fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([createdById])
+  @@index([status])
+  @@index([priority])
 }

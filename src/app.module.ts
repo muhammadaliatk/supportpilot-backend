@@ -8,6 +8,7 @@ import { UsersModule } from './modules/users/users.module';
 import { validationSchema } from './config/env.validation';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
 import { RegistrationModule } from './modules/registration/registration.module';
+import { TicketsModule } from './modules/tickets/tickets.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -19,6 +20,7 @@ import { RegistrationModule } from './modules/registration/registration.module';
     UsersModule,
     OrganizationsModule,
     RegistrationModule,
+    TicketsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

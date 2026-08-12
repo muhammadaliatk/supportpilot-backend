@@ -44,10 +44,12 @@ export class AuthService {
     if (!isValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
-
+    const membership = user.organizations[0];
     const payload = {
       sub: user.id,
       email: user.email,
+      organizationId: membership.organizationId,
+      role: membership.role,
     };
 
     const accessToken = await this.jwtService.signAsync(payload);
