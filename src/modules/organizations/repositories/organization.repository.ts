@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma/prisma.service';
+import { OrganizationRole } from '@prisma/client';
 
 @Injectable()
 export class OrganizationRepository {
@@ -33,6 +34,65 @@ export class OrganizationRepository {
         userId_organizationId: {
           userId,
           organizationId,
+        },
+      },
+    });
+  }
+
+  async findMembers(organizationId: string) {
+    return this.prisma.organizationUser.findMany({
+      where: {
+        organizationId,
+        deletedAt: null,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+            status: true,
+            createdAt: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+  }
+
+  async findUserById(userId: string) {
+    return this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+  }
+
+  async addMember(
+    userId: string,
+    organizationId: string,
+    role: OrganizationRole,
+  ) {
+    return this.prisma.organizationUser.create({
+      data: {
+        userId,
+        organizationId,
+        role,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+            status: true,
+          },
         },
       },
     });

@@ -6,7 +6,7 @@ import {
   Post,
   UseGuards,
   Patch,
-  Query
+  Query,
 } from '@nestjs/common';
 
 import { TicketService } from '../../services/ticket/ticket.service';
@@ -23,6 +23,7 @@ import { AssignTicketDto } from '../../dto/assign-ticket.dto';
 import { CreateTicketCommentDto } from '../../dto/create-ticket-comment.dto';
 import { TicketCommentService } from '../../services/ticket-comment/ticket-comment.service';
 import { TicketQueryDto } from '../../dto/ticket-query.dto';
+import { PrismaService } from 'src/database/prisma/prisma.service';
 
 @UseGuards(JwtAuthGuard)
 @Controller('tickets')
@@ -30,6 +31,7 @@ export class TicketController {
   constructor(
     private readonly ticketService: TicketService,
     private readonly ticketCommentService: TicketCommentService,
+    private readonly prisma: PrismaService
   ) {}
 
   @Post()
@@ -126,5 +128,30 @@ export class TicketController {
     );
 
     return successResponse(comments, 'Comments retrieved successfully');
+  }
+
+  async findMembers(organizationId: string) {
+    return this.prisma.organizationUser.findMany({
+      where: {
+        organizationId,
+        deletedAt: null,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+            status: true,
+            createdAt: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
   }
 }
