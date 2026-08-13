@@ -19,11 +19,16 @@ import type { CurrentUser as CurrentUserType } from '../../../../common/interfac
 import { successResponse } from '../../../../common/utils/api-response.util';
 import { UpdateTicketDto } from '../../dto/update-ticket.dto';
 import { AssignTicketDto } from '../../dto/assign-ticket.dto';
+import { CreateTicketCommentDto } from '../../dto/create-ticket-comment.dto';
+import { TicketCommentService } from '../../services/ticket-comment/ticket-comment.service';
 
 @UseGuards(JwtAuthGuard)
 @Controller('tickets')
 export class TicketController {
-  constructor(private readonly ticketService: TicketService) {}
+  constructor(
+    private readonly ticketService: TicketService,
+    private readonly ticketCommentService: TicketCommentService,
+  ) {}
 
   @Post()
   async create(
@@ -84,5 +89,34 @@ export class TicketController {
     );
 
     return successResponse(ticket, 'Ticket assigned successfully');
+  }
+
+  @Post(':id/comments')
+  async createComment(
+    @Param('id') id: string,
+    @Body() dto: CreateTicketCommentDto,
+    @CurrentUser() user: CurrentUserType,
+  ) {
+    const comment = await this.ticketCommentService.create(
+      id,
+      user.organizationId,
+      user.id,
+      dto.message,
+    );
+
+    return successResponse(comment, 'Comment created successfully');
+  }
+
+  @Get(':id/comments')
+  async findComments(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserType,
+  ) {
+    const comments = await this.ticketCommentService.findAll(
+      id,
+      user.organizationId,
+    );
+
+    return successResponse(comments, 'Comments retrieved successfully');
   }
 }
