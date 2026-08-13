@@ -18,6 +18,7 @@ import type { CurrentUser as CurrentUserType } from '../../../../common/interfac
 
 import { successResponse } from '../../../../common/utils/api-response.util';
 import { UpdateTicketDto } from '../../dto/update-ticket.dto';
+import { AssignTicketDto } from '../../dto/assign-ticket.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('tickets')
@@ -68,5 +69,20 @@ export class TicketController {
     );
 
     return successResponse(ticket, 'Ticket updated successfully');
+  }
+
+  @Patch(':id/assign')
+  async assign(
+    @Param('id') id: string,
+    @Body() dto: AssignTicketDto,
+    @CurrentUser() user: CurrentUserType,
+  ) {
+    const ticket = await this.ticketService.assign(
+      id,
+      user.organizationId,
+      dto.assignedToId,
+    );
+
+    return successResponse(ticket, 'Ticket assigned successfully');
   }
 }

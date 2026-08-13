@@ -66,4 +66,26 @@ export class TicketRepository {
       data,
     });
   }
+
+  async assign(id: string, organizationId: string, assignedToId: string) {
+    const ticket = await this.prisma.ticket.findFirst({
+      where: {
+        id,
+        organizationId,
+      },
+    });
+
+    if (!ticket) {
+      return null;
+    }
+
+    return this.prisma.ticket.update({
+      where: {
+        id,
+      },
+      data: {
+        assignedToId,
+      },
+    });
+  }
 }

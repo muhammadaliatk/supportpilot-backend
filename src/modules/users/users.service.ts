@@ -33,4 +33,24 @@ export class UsersService {
       },
     });
   }
+
+  async findByIdInOrganization(userId: string, organizationId: string) {
+    return this.prisma.user.findFirst({
+      where: {
+        id: userId,
+        organizations: {
+          some: {
+            organizationId,
+          },
+        },
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        status: true,
+      },
+    });
+  }
 }

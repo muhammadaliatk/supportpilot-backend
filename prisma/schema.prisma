@@ -54,8 +54,9 @@ model User {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  organizations OrganizationUser[]
-  tickets       Ticket[]           @relation("CreatedTickets")
+  organizations   OrganizationUser[]
+  tickets         Ticket[]           @relation("CreatedTickets")
+  assignedTickets Ticket[]           @relation("AssignedTickets")
 
   @@index([email])
 }
@@ -108,16 +109,20 @@ model Ticket {
 
   organizationId String
   createdById    String
+  assignedToId   String?
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   createdBy User @relation("CreatedTickets", fields: [createdById], references: [id])
+
+  assignedTo User? @relation("AssignedTickets", fields: [assignedToId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([organizationId])
   @@index([createdById])
+  @@index([assignedToId])
   @@index([status])
   @@index([priority])
 }

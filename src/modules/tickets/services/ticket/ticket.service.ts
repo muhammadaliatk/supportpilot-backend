@@ -1,13 +1,21 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { TicketPriority } from '@prisma/client';
 
 import { TicketRepository } from '../../repositories/ticket.repository/ticket.repository';
 import { CreateTicketDto } from '../../dto/create-ticket.dto';
 import { UpdateTicketDto } from '../../dto/update-ticket.dto';
+import { UsersService } from '../../../users/users.service';
 
 @Injectable()
 export class TicketService {
-  constructor(private readonly ticketRepository: TicketRepository) {}
+  constructor(
+    private readonly ticketRepository: TicketRepository,
+    private readonly usersService: UsersService,
+  ) {}
 
   async create(dto: CreateTicketDto, userId: string, organizationId: string) {
     return this.ticketRepository.create({
@@ -35,5 +43,29 @@ export class TicketService {
     }
 
     return this.ticketRepository.update(id, organizationId, dto);
+  }
+
+  async assign(ticketId: string, organizationId: string, assignedToId: string) {
+    const ticket = await this.ticketRepository.findById(
+      ticketId,
+      organizationId,
+    );
+
+    if (!ticket) {
+      throw new NotFoundException('Ticket not found');
+    }
+
+    const user = await this.usersService.findByIdInOrganization(
+      assignedToId,
+      organizationId,
+    );
+
+    if (!user) {
+      throw new BadRequestException(
+        'Assigned user does not belong to this organization',
+      );
+    }
+
+    return this.ticketRepository.assign(ticketId, organizationId, assignedToId);
   }
 }
