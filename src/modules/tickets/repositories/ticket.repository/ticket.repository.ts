@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../database/prisma/prisma.service';
-import { TicketPriority, TicketStatus } from '@prisma/client';
+import { Prisma, TicketPriority, TicketStatus } from '@prisma/client';
 
 @Injectable()
 export class TicketRepository {
@@ -27,15 +27,66 @@ export class TicketRepository {
     });
   }
 
-  async findAll(organizationId: string) {
-    return this.prisma.ticket.findMany({
-      where: {
-        organizationId,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+  async findAll(
+    organizationId: string,
+    query: {
+      status?: TicketStatus;
+      priority?: TicketPriority;
+      assignedToId?: string;
+      search?: string;
+      page: number;
+      limit: number;
+    },
+  ) {
+    const { status, priority, assignedToId, search, page, limit } = query;
+
+    const where: Prisma.TicketWhereInput = {
+      organizationId,
+      ...(status && { status }),
+      ...(priority && { priority }),
+      ...(assignedToId && { assignedToId }),
+      ...(search && {
+        OR: [
+          {
+            subject: {
+              contains: search,
+              mode: 'insensitive',
+            },
+          },
+          {
+            description: {
+              contains: search,
+              mode: 'insensitive',
+            },
+          },
+        ],
+      }),
+    };
+
+    const skip = (page - 1) * limit;
+
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.ticket.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: {
+          createdAt: 'desc',
+        },
+      }),
+
+      this.prisma.ticket.count({
+        where,
+      }),
+    ]);
+
+    return {
+      items,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async update(

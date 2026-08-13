@@ -9,6 +9,7 @@ import { TicketRepository } from '../../repositories/ticket.repository/ticket.re
 import { CreateTicketDto } from '../../dto/create-ticket.dto';
 import { UpdateTicketDto } from '../../dto/update-ticket.dto';
 import { UsersService } from '../../../users/users.service';
+import { TicketQueryDto } from '../../dto/ticket-query.dto';
 
 @Injectable()
 export class TicketService {
@@ -27,8 +28,8 @@ export class TicketService {
     });
   }
 
-  async findAll(organizationId: string) {
-    return this.ticketRepository.findAll(organizationId);
+  async findAll(organizationId: string, query: TicketQueryDto) {
+    return this.ticketRepository.findAll(organizationId, query);
   }
 
   async findById(id: string, organizationId: string) {

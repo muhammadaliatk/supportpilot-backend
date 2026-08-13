@@ -6,6 +6,7 @@ import {
   Post,
   UseGuards,
   Patch,
+  Query
 } from '@nestjs/common';
 
 import { TicketService } from '../../services/ticket/ticket.service';
@@ -21,6 +22,7 @@ import { UpdateTicketDto } from '../../dto/update-ticket.dto';
 import { AssignTicketDto } from '../../dto/assign-ticket.dto';
 import { CreateTicketCommentDto } from '../../dto/create-ticket-comment.dto';
 import { TicketCommentService } from '../../services/ticket-comment/ticket-comment.service';
+import { TicketQueryDto } from '../../dto/ticket-query.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('tickets')
@@ -45,8 +47,14 @@ export class TicketController {
   }
 
   @Get()
-  async findAll(@CurrentUser() user: CurrentUserType) {
-    const tickets = await this.ticketService.findAll(user.organizationId);
+  async findAll(
+    @CurrentUser() user: CurrentUserType,
+    @Query() query: TicketQueryDto,
+  ) {
+    const tickets = await this.ticketService.findAll(
+      user.organizationId,
+      query,
+    );
 
     return successResponse(tickets, 'Tickets retrieved successfully');
   }
