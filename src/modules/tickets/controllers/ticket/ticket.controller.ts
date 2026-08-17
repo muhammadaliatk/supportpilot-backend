@@ -31,7 +31,7 @@ export class TicketController {
   constructor(
     private readonly ticketService: TicketService,
     private readonly ticketCommentService: TicketCommentService,
-    private readonly prisma: PrismaService
+    private readonly prisma: PrismaService,
   ) {}
 
   @Post()
@@ -153,5 +153,12 @@ export class TicketController {
         createdAt: 'asc',
       },
     });
+  }
+
+  @Get('stats')
+  async getStats(@CurrentUser() user: CurrentUserType) {
+    const stats = await this.ticketService.getStats(user.organizationId);
+
+    return successResponse(stats, 'Ticket statistics retrieved successfully');
   }
 }

@@ -1,11 +1,18 @@
-import { Body, Controller, Delete, Post, Get, Patch, Param } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Post,
+  Get,
+  Patch,
+  Param,
+} from '@nestjs/common';
 import { OrganizationService } from '../../services/organization/organization.service';
 import { CreateOrganizationDto } from '../../dto/create-organization.dto';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../../common/guards/roles.guard';
 import { Roles } from '../../../../common/decorators/roles.decorator';
-import { OrganizationRole } from '@prisma/client';
 import { successResponse } from '../../../../common/utils/api-response.util';
 import { CurrentUser } from '../../../../common/decorators/current-user.decorator';
 import type { CurrentUser as CurrentUserType } from '../../../../common/interfaces/current-user.interface';
@@ -13,6 +20,12 @@ import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AddOrganizationMemberDto } from '../../dto/add-organization-member.dto';
 import { UpdateMemberRoleDto } from '../../dto/update-member-role.dto';
 import { UpdateMemberStatusDto } from '../../dto/update-member-status.dto';
+import {
+  Prisma,
+  TicketPriority,
+  TicketStatus,
+  OrganizationRole,
+} from '@prisma/client';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('organizations')
@@ -113,5 +126,60 @@ export class OrganizationController {
     );
 
     return successResponse(member, 'Organization member removed successfully');
+  }
+
+  async getStats(organizationId: string) {
+    const [total, open, inProgress, resolved, closed, urgent] =
+      await this.prisma.$transaction([
+        this.prisma.ticket.count({
+          where: {
+            organizationId,
+          },
+        }),
+
+        this.prisma.ticket.count({
+          where: {
+            organizationId,
+            status: TicketStatus.OPEN,
+          },
+        }),
+
+        this.prisma.ticket.count({
+          where: {
+            organizationId,
+            status: TicketStatus.IN_PROGRESS,
+          },
+        }),
+
+        this.prisma.ticket.count({
+          where: {
+            organizationId,
+            status: TicketStatus.RESOLVED,
+          },
+        }),
+
+        this.prisma.ticket.count({
+          where: {
+            organizationId,
+            status: TicketStatus.CLOSED,
+          },
+        }),
+
+        this.prisma.ticket.count({
+          where: {
+            organizationId,
+            priority: TicketPriority.URGENT,
+          },
+        }),
+      ]);
+
+    return {
+      total,
+      open,
+      inProgress,
+      resolved,
+      closed,
+      urgent,
+    };
   }
 }

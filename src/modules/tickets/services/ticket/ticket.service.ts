@@ -69,4 +69,8 @@ export class TicketService {
 
     return this.ticketRepository.assign(ticketId, organizationId, assignedToId);
   }
+
+  async getStats(organizationId: string) {
+    return await this.ticketRepository.getStats(organizationId);
+  }
 }

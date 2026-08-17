@@ -139,4 +139,59 @@ export class TicketRepository {
       },
     });
   }
+
+  async getStats(organizationId: string) {
+    const [total, open, inProgress, resolved, closed, urgent] =
+      await this.prisma.$transaction([
+        this.prisma.ticket.count({
+          where: {
+            organizationId,
+          },
+        }),
+
+        this.prisma.ticket.count({
+          where: {
+            organizationId,
+            status: TicketStatus.OPEN,
+          },
+        }),
+
+        this.prisma.ticket.count({
+          where: {
+            organizationId,
+            status: TicketStatus.IN_PROGRESS,
+          },
+        }),
+
+        this.prisma.ticket.count({
+          where: {
+            organizationId,
+            status: TicketStatus.RESOLVED,
+          },
+        }),
+
+        this.prisma.ticket.count({
+          where: {
+            organizationId,
+            status: TicketStatus.CLOSED,
+          },
+        }),
+
+        this.prisma.ticket.count({
+          where: {
+            organizationId,
+            priority: TicketPriority.URGENT,
+          },
+        }),
+      ]);
+
+    return {
+      total,
+      open,
+      inProgress,
+      resolved,
+      closed,
+      urgent,
+    };
+  }
 }
