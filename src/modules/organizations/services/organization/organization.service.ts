@@ -9,7 +9,7 @@ import { OrganizationRepository } from '../../repositories/organization.reposito
 import { CreateOrganizationDto } from '../../dto/create-organization.dto';
 import { generateSlug } from '../../../../common/utils/slug.util';
 import { PrismaService } from '../../../../database/prisma/prisma.service';
-import { OrganizationRole } from '@prisma/client';
+import { OrganizationRole, UserStatus } from '@prisma/client';
 import { AddOrganizationMemberDto } from '../../dto/add-organization-member.dto';
 
 @Injectable()
@@ -114,6 +114,126 @@ export class OrganizationService {
       dto.userId,
       organizationId,
       dto.role,
+    );
+  }
+
+  async updateMemberRole(
+    organizationId: string,
+    currentUserId: string,
+    currentUserRole: OrganizationRole,
+    targetUserId: string,
+    role: OrganizationRole,
+  ) {
+    // Only OWNER can change member roles
+    if (currentUserRole !== OrganizationRole.OWNER) {
+      throw new ForbiddenException('Only OWNER can change member roles');
+    }
+
+    // Target member must exist in this organization
+    const membership = await this.organizationRepository.findMembership(
+      targetUserId,
+      organizationId,
+    );
+
+    if (!membership || membership.deletedAt) {
+      throw new NotFoundException('Organization member not found');
+    }
+
+    // Don't allow changing your own role through this endpoint
+    if (targetUserId === currentUserId) {
+      throw new ForbiddenException('You cannot change your own role');
+    }
+
+    // Don't allow OWNER role changes yet
+    if (membership.role === OrganizationRole.OWNER) {
+      throw new ForbiddenException('OWNER role cannot be changed directly');
+    }
+
+    // Don't allow promoting another user to OWNER
+    if (role === OrganizationRole.OWNER) {
+      throw new ForbiddenException('OWNER role cannot be assigned directly');
+    }
+
+    return this.organizationRepository.updateMemberRole(
+      targetUserId,
+      organizationId,
+      role,
+    );
+  }
+
+  async updateMemberStatus(
+    organizationId: string,
+    currentUserRole: OrganizationRole,
+    targetUserId: string,
+    status: UserStatus,
+  ) {
+    // OWNER and ADMIN can change member status
+    if (
+      currentUserRole !== OrganizationRole.OWNER &&
+      currentUserRole !== OrganizationRole.ADMIN
+    ) {
+      throw new ForbiddenException(
+        'You do not have permission to change member status',
+      );
+    }
+
+    // Verify target user belongs to this organization
+    const membership = await this.organizationRepository.findMembership(
+      targetUserId,
+      organizationId,
+    );
+
+    if (!membership || membership.deletedAt) {
+      throw new NotFoundException('Organization member not found');
+    }
+
+    // Don't allow changing the OWNER's status
+    if (membership.role === OrganizationRole.OWNER) {
+      throw new ForbiddenException('OWNER status cannot be changed');
+    }
+
+    return this.organizationRepository.updateMemberStatus(targetUserId, status);
+  }
+
+  async removeMember(
+    organizationId: string,
+    currentUserId: string,
+    currentUserRole: OrganizationRole,
+    targetUserId: string,
+  ) {
+    if (
+      currentUserRole !== OrganizationRole.OWNER &&
+      currentUserRole !== OrganizationRole.ADMIN
+    ) {
+      throw new ForbiddenException(
+        'You do not have permission to remove members',
+      );
+    }
+
+    if (currentUserId === targetUserId) {
+      throw new ForbiddenException(
+        'You cannot remove yourself from the organization',
+      );
+    }
+
+    const membership = await this.organizationRepository.findMembership(
+      targetUserId,
+      organizationId,
+    );
+
+    if (!membership || membership.deletedAt) {
+      throw new NotFoundException('Organization member not found');
+    }
+
+    if (membership.role === OrganizationRole.OWNER) {
+      throw new ForbiddenException(
+        'OWNER cannot be removed from the organization',
+      );
+    }
+
+    return this.organizationRepository.removeMember(
+      targetUserId,
+      organizationId,
     );
   }
 }

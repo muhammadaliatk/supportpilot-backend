@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma/prisma.service';
-import { OrganizationRole } from '@prisma/client';
+import { OrganizationRole, UserStatus } from '@prisma/client';
 
 @Injectable()
 export class OrganizationRepository {
@@ -82,6 +82,82 @@ export class OrganizationRepository {
         userId,
         organizationId,
         role,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+            status: true,
+          },
+        },
+      },
+    });
+  }
+
+  async updateMemberRole(
+    userId: string,
+    organizationId: string,
+    role: OrganizationRole,
+  ) {
+    return this.prisma.organizationUser.update({
+      where: {
+        userId_organizationId: {
+          userId,
+          organizationId,
+        },
+      },
+      data: {
+        role,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+            status: true,
+          },
+        },
+      },
+    });
+  }
+
+  async updateMemberStatus(userId: string, status: UserStatus) {
+    return this.prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        status,
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        avatar: true,
+        status: true,
+        updatedAt: true,
+      },
+    });
+  }
+
+  async removeMember(userId: string, organizationId: string) {
+    return this.prisma.organizationUser.update({
+      where: {
+        userId_organizationId: {
+          userId,
+          organizationId,
+        },
+      },
+      data: {
+        deletedAt: new Date(),
       },
       include: {
         user: {

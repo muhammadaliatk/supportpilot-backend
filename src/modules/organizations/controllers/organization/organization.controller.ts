@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Get } from '@nestjs/common';
+import { Body, Controller, Delete, Post, Get, Patch, Param } from '@nestjs/common';
 import { OrganizationService } from '../../services/organization/organization.service';
 import { CreateOrganizationDto } from '../../dto/create-organization.dto';
 import { UseGuards } from '@nestjs/common';
@@ -11,6 +11,8 @@ import { CurrentUser } from '../../../../common/decorators/current-user.decorato
 import type { CurrentUser as CurrentUserType } from '../../../../common/interfaces/current-user.interface';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AddOrganizationMemberDto } from '../../dto/add-organization-member.dto';
+import { UpdateMemberRoleDto } from '../../dto/update-member-role.dto';
+import { UpdateMemberStatusDto } from '../../dto/update-member-status.dto';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('organizations')
@@ -55,5 +57,61 @@ export class OrganizationController {
     );
 
     return successResponse(member, 'Organization member added successfully');
+  }
+
+  @Patch('members/:userId/role')
+  async updateMemberRole(
+    @Param('userId') targetUserId: string,
+    @Body() dto: UpdateMemberRoleDto,
+    @CurrentUser() user: CurrentUserType,
+  ) {
+    const member = await this.organizationService.updateMemberRole(
+      user.organizationId,
+      user.id,
+      user.role,
+      targetUserId,
+      dto.role,
+    );
+
+    return successResponse(
+      member,
+      'Organization member role updated successfully',
+    );
+  }
+
+  @Patch('members/:userId/status')
+  @Roles(OrganizationRole.OWNER, OrganizationRole.ADMIN)
+  async updateMemberStatus(
+    @Param('userId') targetUserId: string,
+    @Body() dto: UpdateMemberStatusDto,
+    @CurrentUser() user: CurrentUserType,
+  ) {
+    const member = await this.organizationService.updateMemberStatus(
+      user.organizationId,
+      user.role,
+      targetUserId,
+      dto.status,
+    );
+
+    return successResponse(
+      member,
+      'Organization member status updated successfully',
+    );
+  }
+
+  @Delete('members/:userId')
+  @Roles(OrganizationRole.OWNER, OrganizationRole.ADMIN)
+  async removeMember(
+    @Param('userId') targetUserId: string,
+    @CurrentUser() user: CurrentUserType,
+  ) {
+    const member = await this.organizationService.removeMember(
+      user.organizationId,
+      user.id,
+      user.role,
+      targetUserId,
+    );
+
+    return successResponse(member, 'Organization member removed successfully');
   }
 }
