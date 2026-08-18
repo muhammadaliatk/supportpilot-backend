@@ -24,6 +24,7 @@ import { CreateTicketCommentDto } from '../../dto/create-ticket-comment.dto';
 import { TicketCommentService } from '../../services/ticket-comment/ticket-comment.service';
 import { TicketQueryDto } from '../../dto/ticket-query.dto';
 import { PrismaService } from 'src/database/prisma/prisma.service';
+import { TicketActivityService } from '../../services/ticket-activity/ticket-activity.service';
 
 @UseGuards(JwtAuthGuard)
 @Controller('tickets')
@@ -32,6 +33,7 @@ export class TicketController {
     private readonly ticketService: TicketService,
     private readonly ticketCommentService: TicketCommentService,
     private readonly prisma: PrismaService,
+    private readonly ticketActivityService: TicketActivityService,
   ) {}
 
   @Post()
@@ -80,6 +82,7 @@ export class TicketController {
     const ticket = await this.ticketService.update(
       id,
       user.organizationId,
+      user.id,
       dto,
     );
 
@@ -95,6 +98,7 @@ export class TicketController {
     const ticket = await this.ticketService.assign(
       id,
       user.organizationId,
+      user.id,
       dto.assignedToId,
     );
 
@@ -160,5 +164,21 @@ export class TicketController {
     const stats = await this.ticketService.getStats(user.organizationId);
 
     return successResponse(stats, 'Ticket statistics retrieved successfully');
+  }
+
+  @Get(':id/activities')
+  async getActivities(
+    @Param('id') ticketId: string,
+    @CurrentUser() user: CurrentUserType,
+  ) {
+    const activities = await this.ticketActivityService.findByTicket(
+      ticketId,
+      user.organizationId,
+    );
+
+    return successResponse(
+      activities,
+      'Ticket activities retrieved successfully',
+    );
   }
 }
