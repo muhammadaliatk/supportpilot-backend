@@ -46,8 +46,8 @@ export class TicketController {
   ) {
     const ticket = await this.ticketService.create(
       dto,
-      user.id,
       user.organizationId,
+      user.id,
     );
 
     return successResponse(ticket, 'Ticket created successfully');
