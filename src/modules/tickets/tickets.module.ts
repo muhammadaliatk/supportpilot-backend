@@ -10,9 +10,10 @@ import { TicketService } from './services/ticket/ticket.service';
 import { UsersModule } from '../users/users.module';
 import { TicketActivityRepository } from './repositories/ticket-activity.repository';
 import { TicketActivityService } from './services/ticket-activity/ticket-activity.service';
+import { CustomersModule } from '../customers/customers.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule],
+  imports: [PrismaModule, UsersModule, CustomersModule],
   controllers: [TicketController],
   providers: [
     TicketService,

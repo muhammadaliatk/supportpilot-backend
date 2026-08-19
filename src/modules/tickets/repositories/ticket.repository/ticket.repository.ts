@@ -12,6 +12,7 @@ export class TicketRepository {
     priority: TicketPriority;
     organizationId: string;
     createdById: string;
+    customerId?: string;
   }) {
     return this.prisma.ticket.create({
       data,
@@ -23,6 +24,9 @@ export class TicketRepository {
       where: {
         id,
         organizationId,
+      },
+      include: {
+        customer: true,
       },
     });
   }
@@ -72,6 +76,9 @@ export class TicketRepository {
         take: limit,
         orderBy: {
           createdAt: 'desc',
+        },
+        include: {
+          customer: true,
         },
       }),
 

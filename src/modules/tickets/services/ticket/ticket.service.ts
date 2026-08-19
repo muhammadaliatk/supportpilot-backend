@@ -11,6 +11,7 @@ import { UpdateTicketDto } from '../../dto/update-ticket.dto';
 import { UsersService } from '../../../users/users.service';
 import { TicketQueryDto } from '../../dto/ticket-query.dto';
 import { TicketActivityService } from '../ticket-activity/ticket-activity.service';
+import { CustomerService } from '../../../customers/services/customer.service';
 
 @Injectable()
 export class TicketService {
@@ -18,15 +19,21 @@ export class TicketService {
     private readonly ticketRepository: TicketRepository,
     private readonly usersService: UsersService,
     private readonly ticketActivityService: TicketActivityService,
+    private readonly customerService: CustomerService,
   ) {}
 
   async create(dto: CreateTicketDto, organizationId: string, userId: string) {
+    if (dto.customerId) {
+      await this.customerService.findById(dto.customerId, organizationId);
+    }
+
     const ticket = await this.ticketRepository.create({
       subject: dto.subject,
       description: dto.description,
       priority: dto.priority ?? TicketPriority.MEDIUM,
       organizationId,
       createdById: userId,
+      customerId: dto.customerId,
     });
 
     await this.ticketActivityService.create(
