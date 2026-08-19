@@ -11,6 +11,7 @@ import { RegistrationModule } from './modules/registration/registration.module';
 import { TicketsModule } from './modules/tickets/tickets.module';
 import { CustomersModule } from './modules/customers/customers.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { AiModule } from './modules/ai/ai.module';
 
 @Module({
   imports: [
@@ -25,7 +26,8 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     RegistrationModule,
     TicketsModule,
     CustomersModule,
-    DashboardModule
+    DashboardModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [AppService],

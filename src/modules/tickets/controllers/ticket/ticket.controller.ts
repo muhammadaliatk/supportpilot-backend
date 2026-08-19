@@ -7,6 +7,7 @@ import {
   UseGuards,
   Patch,
   Query,
+  NotFoundException,
 } from '@nestjs/common';
 
 import { TicketService } from '../../services/ticket/ticket.service';
@@ -25,6 +26,7 @@ import { TicketCommentService } from '../../services/ticket-comment/ticket-comme
 import { TicketQueryDto } from '../../dto/ticket-query.dto';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { TicketActivityService } from '../../services/ticket-activity/ticket-activity.service';
+import { AiService } from '../../../ai/services/ai.service';
 
 @UseGuards(JwtAuthGuard)
 @Controller('tickets')
@@ -34,6 +36,7 @@ export class TicketController {
     private readonly ticketCommentService: TicketCommentService,
     private readonly prisma: PrismaService,
     private readonly ticketActivityService: TicketActivityService,
+    private readonly aiService: AiService,
   ) {}
 
   @Post()
@@ -179,6 +182,41 @@ export class TicketController {
     return successResponse(
       activities,
       'Ticket activities retrieved successfully',
+    );
+  }
+
+  @Post(':id/ai/reply')
+  async generateAiReply(
+    @Param('id') ticketId: string,
+    @CurrentUser() user: CurrentUserType,
+  ) {
+    const ticket = await this.ticketService.findById(
+      ticketId,
+      user.organizationId,
+    );
+
+    if (!ticket) {
+      throw new NotFoundException('Ticket not found');
+    }
+
+    const comments = await this.ticketCommentService.findAll(
+      ticketId,
+      user.organizationId,
+    );
+
+    const response = await this.aiService.generateCustomerReply({
+      subject: ticket.subject,
+      description: ticket.description,
+      customer: ticket.customer,
+      comments,
+    });
+
+    return successResponse(
+      {
+        ticketId: ticket.id,
+        reply: response,
+      },
+      'AI reply generated successfully',
     );
   }
 }
