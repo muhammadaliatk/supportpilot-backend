@@ -7,7 +7,7 @@ export class TicketActivityRepository {
 
   async create(data: {
     ticketId: string;
-    userId: string;
+    userId: string | null;
     organizationId: string;
     action: string;
     description: string;

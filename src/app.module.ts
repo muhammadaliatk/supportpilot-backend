@@ -12,6 +12,7 @@ import { TicketsModule } from './modules/tickets/tickets.module';
 import { CustomersModule } from './modules/customers/customers.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { AiModule } from './modules/ai/ai.module';
+import { PublicSupportModule } from './modules/public-support/public-support.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { AiModule } from './modules/ai/ai.module';
     CustomersModule,
     DashboardModule,
     AiModule,
+    PublicSupportModule,
   ],
   controllers: [AppController],
   providers: [AppService],

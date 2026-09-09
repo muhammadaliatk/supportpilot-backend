@@ -117,12 +117,12 @@ model Ticket {
   priority TicketPriority @default(MEDIUM)
 
   organizationId String
-  createdById    String
+  createdById    String?
   assignedToId   String?
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  createdBy User @relation("CreatedTickets", fields: [createdById], references: [id])
+  createdBy User? @relation("CreatedTickets", fields: [createdById], references: [id], onDelete: SetNull)
 
   assignedTo User? @relation("AssignedTickets", fields: [assignedToId], references: [id], onDelete: SetNull)
 
@@ -163,7 +163,7 @@ model TicketComment {
 model TicketActivity {
   id             String @id @default(uuid())
   ticketId       String
-  userId         String
+  userId         String?
   organizationId String
 
   action      String
@@ -172,7 +172,7 @@ model TicketActivity {
   createdAt DateTime @default(now())
 
   ticket       Ticket       @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([ticketId])
